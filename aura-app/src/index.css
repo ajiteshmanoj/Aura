@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+
+  --color-aura-bg: #0a0b10;
+  --color-aura-surface: #12131a;
+  --color-aura-card: #1a1b24;
+  --color-aura-border: #2a2b36;
+  --color-aura-amber: #f0a050;
+  --color-aura-lavender: #b09cdf;
+  --color-aura-coral: #e88080;
+  --color-aura-teal: #6ccfcf;
+  --color-aura-glow: rgba(240, 160, 80, 0.15);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2a2b36 transparent;
+}
+
+body {
+  background: var(--color-aura-bg);
+  min-height: 100dvh;
+}
+
+/* Glassmorphism utility */
+.glass {
+  background: rgba(26, 27, 36, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Soft glow effects */
+.glow-amber {
+  box-shadow: 0 0 40px rgba(240, 160, 80, 0.15), 0 0 80px rgba(240, 160, 80, 0.05);
+}
+
+.glow-lavender {
+  box-shadow: 0 0 40px rgba(176, 156, 223, 0.15), 0 0 80px rgba(176, 156, 223, 0.05);
+}
+
+/* Smooth page transitions */
+.page-enter {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes bloom {
+  0% { transform: scale(0.95); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out both;
+}
+
+.animate-bloom {
+  animation: bloom 0.6s ease-out both;
+}
+
+/* Stagger children animations */
+.stagger-children > * {
+  animation: fadeInUp 0.5s ease-out both;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 80ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 160ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 320ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 400ms; }
+
+/* Custom colour wheel styling */
+.colour-wheel {
+  touch-action: none;
+}
+
+/* Hide scrollbar on mobile nav */
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
