@@ -1,6 +1,9 @@
 import { useState, useMemo } from 'react';
 import { getEntries } from '../data/store';
 import { getMockCalendarDensity } from '../utils/calendar';
+import { callAI } from '../utils/ai';
+import { getAuraSystemPrompt } from '../utils/auraSystemPrompt';
+import { assembleAuraContext, formatContextForAI } from '../utils/auraContext';
 
 const REPORT_PROMPT = `You are Aura, an emotionally intelligent wellness companion. You analyse patterns in a user's emotional expression, music listening, and schedule to help them understand themselves better.
 
@@ -54,20 +57,20 @@ export default function Report() {
     const spotifyData = weekEntries.map(e => e.songFeatures ? `${new Date(e.timestamp).toLocaleDateString('en-US', { weekday: 'short' })}: valence=${e.songFeatures.valence.toFixed(2)}, energy=${e.songFeatures.energy.toFixed(2)}, song="${e.songName}"` : '').filter(Boolean).join('\n') || 'No listening data';
     const calendarData = weekEntries.map(e => { const d = calendarDensity[e.timestamp.split('T')[0]] || e.calendarDensity || { eventCount: 0, hoursBooked: 0 }; return `${new Date(e.timestamp).toLocaleDateString('en-US', { weekday: 'short' })}: ${d.eventCount} events, ${d.hoursBooked}h`; }).join('\n');
 
+    const context = assembleAuraContext();
+    const contextStr = formatContextForAI(context);
     const prompt = REPORT_PROMPT.replace('{colour_data}', colourData).replace('{metaphor_data}', metaphorData).replace('{journal_data}', journalData).replace('{spotify_data}', spotifyData).replace('{calendar_data}', calendarData);
-    const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
 
-    if (!apiKey) { setReport(getMockReport(weekEntries)); setLoading(false); return; }
+    const fullPrompt = prompt + `\n\nADDITIONAL CONTEXT:\n${contextStr}\n\nAlso add a 5th section:\n5. LOOKING AHEAD: Based on the upcoming calendar, one proactive observation about the week ahead. 1-2 sentences.`;
 
-    try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 400, messages: [{ role: 'user', content: prompt }] }),
-      });
-      const data = await res.json();
-      setReport(parseReport(data.content?.[0]?.text || ''));
-    } catch {
+    const result = await callAI(getAuraSystemPrompt(), fullPrompt, {
+      maxTokens: 600,
+      fallback: null,
+    });
+
+    if (result) {
+      setReport(parseReport(result));
+    } else {
       setError('Using demo insights.');
       setReport(getMockReport(weekEntries));
     }
@@ -79,6 +82,7 @@ export default function Report() {
     { key: 'music', title: 'Music Insight', icon: '♪', color: '#6EECD4' },
     { key: 'metaphor', title: 'Metaphor Trajectory', icon: '"', color: '#B8A9FF' },
     { key: 'reflection', title: 'Reflection', icon: '◯', color: '#FF6B8A' },
+    { key: 'lookingAhead', title: 'Looking Ahead', icon: '→', color: '#7EB8FF' },
   ];
 
   return (
@@ -167,13 +171,14 @@ export default function Report() {
 }
 
 function parseReport(text) {
-  const sections = { pattern: '', music: '', metaphor: '', reflection: '' };
+  const sections = { pattern: '', music: '', metaphor: '', reflection: '', lookingAhead: '' };
   let current = null;
   for (const line of text.split('\n')) {
     const lower = line.toLowerCase();
     if (lower.includes('pattern')) { current = 'pattern'; continue; }
     if (lower.includes('music')) { current = 'music'; continue; }
     if (lower.includes('metaphor')) { current = 'metaphor'; continue; }
+    if (lower.includes('looking ahead')) { current = 'lookingAhead'; continue; }
     if (lower.includes('reflection')) { current = 'reflection'; continue; }
     if (current && line.trim()) sections[current] += (sections[current] ? ' ' : '') + line.trim();
   }

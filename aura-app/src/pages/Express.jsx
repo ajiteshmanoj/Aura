@@ -4,6 +4,7 @@ import ColourPicker from '../components/ColourPicker';
 import SongSearch from '../components/SongSearch';
 import { saveEntry, getSpotifyToken } from '../data/store';
 import { analyzeSingleSong } from '../utils/musicAnalysis';
+import { hasAIKey } from '../utils/ai';
 
 export default function Express() {
   const navigate = useNavigate();
@@ -22,9 +23,8 @@ export default function Express() {
     setSongInsight('');
     if (s) {
       setInsightLoading(true);
-      const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY || '';
       setTimeout(() => {
-        analyzeSingleSong(s.name, s.artist, apiKey).then(insight => {
+        analyzeSingleSong(s.name, s.artist).then(insight => {
           setSongInsight(insight);
           setInsightLoading(false);
         });

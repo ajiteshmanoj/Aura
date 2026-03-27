@@ -1,6 +1,7 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import NavBar from './components/NavBar';
+import AuraChat from './components/AuraChat';
 import Landing from './pages/Landing';
 import Express from './pages/Express';
 import Reflect from './pages/Reflect';
@@ -68,10 +69,12 @@ function AmbientGlow() {
 
 export default function App() {
   const location = useLocation();
+  const [chatOpen, setChatOpen] = useState(false);
   const isImmersive = location.pathname === '/atmosphere';
   const showNav = location.pathname !== '/' &&
     !location.pathname.startsWith('/callback') &&
     !isImmersive;
+  const showChatButton = showNav && !chatOpen;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', position: 'relative' }}>
@@ -104,6 +107,30 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* Floating "Talk to Aura" button */}
+      {showChatButton && (
+        <button
+          onClick={() => setChatOpen(true)}
+          style={{
+            position: 'fixed', bottom: '90px', right: '20px', zIndex: 100,
+            width: '48px', height: '48px', borderRadius: '50%', border: 'none', cursor: 'pointer',
+            background: 'linear-gradient(135deg, #F5A623, #e6951a)',
+            boxShadow: '0 4px 20px rgba(245,166,35,0.3)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'transform 0.2s, box-shadow 0.2s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 6px 28px rgba(245,166,35,0.4)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(245,166,35,0.3)'; }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0a0a1a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+        </button>
+      )}
+
+      {/* Chat panel */}
+      <AuraChat isOpen={chatOpen} onClose={() => setChatOpen(false)} />
     </div>
   );
 }

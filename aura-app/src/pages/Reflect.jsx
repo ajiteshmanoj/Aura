@@ -26,8 +26,7 @@ export default function Reflect() {
     const tracks = spotifyData?.recent?.length ? spotifyData.recent : spotifyData?.topShort || [];
     if (tracks.length > 0 && !musicAnalysis) {
       setAnalysisLoading(true);
-      const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY || '';
-      analyzeMusicMood(tracks, apiKey).then(a => { setMusicAnalysis(a); setAnalysisLoading(false); });
+      analyzeMusicMood(tracks).then(a => { setMusicAnalysis(a); setAnalysisLoading(false); });
     }
   }, [spotifyData]);
 
