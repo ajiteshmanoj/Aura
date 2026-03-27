@@ -3,11 +3,34 @@ import { useNavigate } from 'react-router-dom';
 import ColourPicker from '../components/ColourPicker';
 import SongSearch from '../components/SongSearch';
 import { saveEntry, getSpotifyToken } from '../data/store';
+import { analyzeSingleSong } from '../utils/musicAnalysis';
 
 export default function Express() {
   const navigate = useNavigate();
-  const [colour, setColour] = useState('');
-  const [song, setSong] = useState(null);
+  const [colour, setColourRaw] = useState('');
+  const setColour = (c) => {
+    setColourRaw(c);
+    // Write to a temp key so PhoneFrame picks it up instantly for ambient glow
+    localStorage.setItem('aura_live_colour', c);
+  };
+  const [song, setSongRaw] = useState(null);
+  const [songInsight, setSongInsight] = useState('');
+  const [insightLoading, setInsightLoading] = useState(false);
+
+  const setSong = (s) => {
+    setSongRaw(s);
+    setSongInsight('');
+    if (s) {
+      setInsightLoading(true);
+      const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY || '';
+      setTimeout(() => {
+        analyzeSingleSong(s.name, s.artist, apiKey).then(insight => {
+          setSongInsight(insight);
+          setInsightLoading(false);
+        });
+      }, 1000); // Deliberate delay to feel like AI is "thinking"
+    }
+  };
   const [metaphor, setMetaphor] = useState('');
   const [freeform, setFreeform] = useState('');
   const [photo, setPhoto] = useState(null);
@@ -83,6 +106,16 @@ export default function Express() {
           <div style={{ position: 'relative', zIndex: 100 }}>
             <Section title="Song of the day" subtitle="What are you listening to?">
               <SongSearch spotifyToken={spotifyToken} selected={song} onSelect={setSong} />
+              {/* AI song insight */}
+              {song && (insightLoading ? (
+                <p style={{ fontSize: '13px', color: '#6B6777', fontStyle: 'italic', marginTop: '10px', textAlign: 'center', animation: 'softPulse 2s ease-in-out infinite' }}>
+                  Reading this choice...
+                </p>
+              ) : songInsight ? (
+                <p style={{ fontSize: '13px', color: '#9B97A0', fontStyle: 'italic', marginTop: '10px', textAlign: 'center', animation: 'fadeIn 0.6s ease-out both' }}>
+                  {songInsight}
+                </p>
+              ) : null)}
             </Section>
           </div>
 

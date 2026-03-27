@@ -1,13 +1,37 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getEntries, getStreakInfo } from '../data/store';
+import { getEntries, getStreakInfo, getSpotifyToken } from '../data/store';
 import { getMockCalendarDensity } from '../utils/calendar';
 import { getColourMood } from '../utils/colour';
+import { getCachedSpotifyData, fetchAllSpotifyData } from '../utils/spotify';
+import { analyzeMusicMood } from '../utils/musicAnalysis';
 
 export default function Reflect() {
   const entries = useMemo(() => getEntries().sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)), []);
   const calendarDensity = useMemo(() => getMockCalendarDensity(), []);
   const streak = getStreakInfo();
+  const token = getSpotifyToken();
+
+  const [spotifyData, setSpotifyData] = useState(getCachedSpotifyData());
+  const [musicAnalysis, setMusicAnalysis] = useState(null);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+
+  useEffect(() => {
+    if (token && !spotifyData) {
+      fetchAllSpotifyData(token).then(data => { if (data) setSpotifyData(data); });
+    }
+  }, [token]);
+
+  useEffect(() => {
+    const tracks = spotifyData?.recent?.length ? spotifyData.recent : spotifyData?.topShort || [];
+    if (tracks.length > 0 && !musicAnalysis) {
+      setAnalysisLoading(true);
+      const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY || '';
+      analyzeMusicMood(tracks, apiKey).then(a => { setMusicAnalysis(a); setAnalysisLoading(false); });
+    }
+  }, [spotifyData]);
+
+  const recentTracks = spotifyData?.recent?.slice(0, 20) || [];
 
   return (
     <div className="pb-6 px-5 pt-6 max-w-lg mx-auto page-enter">
@@ -114,7 +138,127 @@ export default function Reflect() {
           </div>
         </div>
 
-        <div className="section-divider" />
+        {/* Recent tracks row */}
+        {recentTracks.length > 0 && (
+          <>
+            <div>
+              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }} className="hide-scrollbar">
+                {recentTracks.slice(0, 12).map((t, i) => (
+                  <div key={i} style={{ flexShrink: 0, textAlign: 'center' }}>
+                    <img src={t.albumArtSmall || t.albumArt} alt="" style={{
+                      width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover',
+                      border: '2px solid rgba(255,255,255,0.06)',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                    }} />
+                  </div>
+                ))}
+              </div>
+              <p style={{ fontSize: '12px', color: '#6B6777', marginTop: '8px' }}>
+                You listened to {recentTracks.length} tracks recently
+              </p>
+            </div>
+            <div className="section-divider" />
+          </>
+        )}
+
+        {/* AI Music Analysis Card */}
+        {(analysisLoading || musicAnalysis) && (
+          <>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <span style={{ color: '#F5A623', fontSize: '18px' }}>♪</span>
+                <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '17px', fontWeight: 600, color: '#F0EDE6', margin: 0 }}>What your music says</h2>
+              </div>
+
+              {analysisLoading ? (
+                <div className="glass" style={{ borderRadius: '20px', padding: '24px' }}>
+                  <div style={{ height: '14px', width: '80%', borderRadius: '8px', background: 'linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', marginBottom: '10px' }} />
+                  <div style={{ height: '14px', width: '60%', borderRadius: '8px', background: 'linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite 0.2s', marginBottom: '10px' }} />
+                  <div style={{ height: '14px', width: '70%', borderRadius: '8px', background: 'linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite 0.4s' }} />
+                  <p style={{ fontSize: '12px', color: '#6B6777', marginTop: '14px', textAlign: 'center' }}>Reading your music...</p>
+                </div>
+              ) : musicAnalysis && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', animation: 'fadeInUp 0.5s ease-out both' }}>
+                  {/* Main analysis */}
+                  <div className="glass" style={{ borderRadius: '20px', padding: '18px' }}>
+                    <p style={{ fontSize: '14px', color: '#F0EDE6', lineHeight: 1.7, margin: '0 0 10px' }}>{musicAnalysis.emotionalLandscape}</p>
+                    <p style={{ fontSize: '13px', color: '#9B97A0', lineHeight: 1.6, margin: 0 }}>{musicAnalysis.pattern}</p>
+                  </div>
+
+                  {/* Gentle observation — highlighted */}
+                  <div className="glass" style={{ borderRadius: '20px', padding: '18px', borderLeft: '3px solid #F5A623' }}>
+                    <p style={{ fontSize: '16px', color: '#F0EDE6', fontFamily: "'Playfair Display', serif", fontStyle: 'italic', lineHeight: 1.6, margin: 0, opacity: 0.9 }}>
+                      "{musicAnalysis.gentleObservation}"
+                    </p>
+                  </div>
+
+                  {/* Mood score + emotion pill */}
+                  <div className="glass" style={{ borderRadius: '20px', padding: '14px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    {/* Mood bar */}
+                    <div style={{ flex: 1 }}>
+                      <div style={{ height: '6px', borderRadius: '6px', background: 'linear-gradient(90deg, #FF6B8A, #F5A623, #6EECD4)', position: 'relative', overflow: 'visible' }}>
+                        <div style={{
+                          position: 'absolute', top: '50%', left: `${(musicAnalysis.moodScore || 0.5) * 100}%`,
+                          transform: 'translate(-50%, -50%)', width: '14px', height: '14px', borderRadius: '50%',
+                          background: '#F0EDE6', border: '2px solid #0a0a1a',
+                          boxShadow: '0 0 8px rgba(240,237,230,0.4)',
+                        }} />
+                      </div>
+                    </div>
+                    {/* Emotion pill */}
+                    <span style={{
+                      fontSize: '11px', padding: '4px 12px', borderRadius: '20px',
+                      background: 'rgba(184,169,255,0.12)', color: '#B8A9FF',
+                      fontWeight: 500, letterSpacing: '0.02em', flexShrink: 0,
+                    }}>
+                      {musicAnalysis.dominantEmotion}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="section-divider" />
+          </>
+        )}
+
+        {/* Listening stats */}
+        {(recentTracks.length > 0 || musicAnalysis) && (
+          <>
+            <div className="glass" style={{ borderRadius: '18px', padding: '14px', display: 'flex', justifyContent: 'space-around', textAlign: 'center' }}>
+              {recentTracks.length > 0 && (
+                <div>
+                  <p style={{ fontSize: '20px', fontFamily: "'Playfair Display', serif", color: '#F0EDE6', margin: '0 0 2px' }}>{recentTracks.length}</p>
+                  <p style={{ fontSize: '10px', color: '#6B6777', margin: 0 }}>tracks</p>
+                </div>
+              )}
+              {recentTracks.length > 0 && (() => {
+                const artists = {};
+                recentTracks.forEach(t => { artists[t.artist] = (artists[t.artist] || 0) + 1; });
+                const top = Object.entries(artists).sort((a, b) => b[1] - a[1])[0];
+                return top ? (
+                  <div>
+                    <p style={{ fontSize: '13px', color: '#F0EDE6', margin: '0 0 2px', fontWeight: 500 }}>{top[0].split(',')[0]}</p>
+                    <p style={{ fontSize: '10px', color: '#6B6777', margin: 0 }}>top artist</p>
+                  </div>
+                ) : null;
+              })()}
+              {musicAnalysis && (
+                <div>
+                  <span style={{
+                    fontSize: '12px', padding: '3px 10px', borderRadius: '20px',
+                    background: musicAnalysis.moodScore > 0.7 ? 'rgba(110,236,212,0.12)' : musicAnalysis.moodScore < 0.4 ? 'rgba(126,184,255,0.12)' : 'rgba(184,169,255,0.12)',
+                    color: musicAnalysis.moodScore > 0.7 ? '#6EECD4' : musicAnalysis.moodScore < 0.4 ? '#7EB8FF' : '#B8A9FF',
+                    fontWeight: 500,
+                  }}>
+                    {musicAnalysis.dominantEmotion}
+                  </span>
+                  <p style={{ fontSize: '10px', color: '#6B6777', margin: '4px 0 0' }}>music mood</p>
+                </div>
+              )}
+            </div>
+            <div className="section-divider" />
+          </>
+        )}
 
         {/* Before/After */}
         {(() => {

@@ -16,11 +16,13 @@ export default function PhoneFrame({ children, bottomNav }) {
     if (!isDesktop) return;
     const interval = setInterval(() => {
       try {
+        const live = localStorage.getItem('aura_live_colour');
+        if (live) { setAmbientColour(live); return; }
         const entries = JSON.parse(localStorage.getItem('aura_entries') || '[]');
         const last = entries[entries.length - 1];
         if (last?.colour) setAmbientColour(last.colour);
       } catch {}
-    }, 2000);
+    }, 500);
     return () => clearInterval(interval);
   }, [isDesktop]);
 
@@ -29,18 +31,10 @@ export default function PhoneFrame({ children, bottomNav }) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', position: 'relative', overflow: 'hidden' }}>
         <div style={{
-          position: 'fixed', top: '-20%', right: '-20%', width: '60%', height: '60%',
-          background: `radial-gradient(circle, ${ambientColour}20 0%, transparent 70%)`,
-          filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0,
-          animation: 'drift 20s ease-in-out infinite alternate',
-          transition: 'background 2s ease',
-        }} />
-        <div style={{
-          position: 'fixed', bottom: '-15%', left: '-15%', width: '40%', height: '40%',
-          background: `radial-gradient(circle, ${getComplementary(ambientColour)}12 0%, transparent 70%)`,
-          filter: 'blur(60px)', pointerEvents: 'none', zIndex: 0,
-          animation: 'driftReverse 25s ease-in-out infinite alternate',
-          transition: 'background 2s ease',
+          position: 'fixed', inset: 0,
+          background: `linear-gradient(160deg, ${ambientColour}18 0%, ${ambientColour}0a 40%, transparent 80%)`,
+          pointerEvents: 'none', zIndex: 0,
+          transition: 'background 1.5s ease',
         }} />
         <div style={{ flex: 1, position: 'relative', zIndex: 1 }}>{children}</div>
         {bottomNav}
@@ -151,20 +145,12 @@ export default function PhoneFrame({ children, bottomNav }) {
                 position: 'relative',
               }}
             >
-              {/* Ambient glow orbs inside scroll area */}
+              {/* Full-screen ambient colour wash */}
               <div style={{
-                position: 'absolute', top: '-10%', right: '-20%', width: '70%', height: '50%',
-                background: `radial-gradient(circle, ${ambientColour}28 0%, transparent 70%)`,
-                filter: 'blur(60px)', pointerEvents: 'none', zIndex: 0,
-                animation: 'drift 20s ease-in-out infinite alternate',
-                transition: 'background 2s ease',
-              }} />
-              <div style={{
-                position: 'absolute', top: '40%', left: '-15%', width: '50%', height: '40%',
-                background: `radial-gradient(circle, ${getComplementary(ambientColour)}18 0%, transparent 70%)`,
-                filter: 'blur(50px)', pointerEvents: 'none', zIndex: 0,
-                animation: 'driftReverse 25s ease-in-out infinite alternate',
-                transition: 'background 2s ease',
+                position: 'absolute', inset: 0,
+                background: `linear-gradient(160deg, ${ambientColour}18 0%, ${ambientColour}0a 40%, transparent 80%)`,
+                pointerEvents: 'none', zIndex: 0,
+                transition: 'background 1.5s ease',
               }} />
               <div style={{ position: 'relative', zIndex: 1 }}>
                 {children}
