@@ -38,7 +38,7 @@ export default function PhoneFrame({ children, bottomNav }) {
   return (
     <div
       style={{
-        background: 'radial-gradient(ellipse at 50% 30%, #0d0d2a, #030308)',
+        background: 'radial-gradient(ellipse at 50% 30%, #0d0d1e, #030308)',
         minHeight: '100vh',
         display: 'flex',
         alignItems: 'flex-start',
@@ -83,7 +83,7 @@ export default function PhoneFrame({ children, bottomNav }) {
               flexDirection: 'column',
               height: '100%',
               overflow: 'hidden',
-              background: '#0a0b10',
+              background: 'linear-gradient(160deg, #0a0a1a 0%, #0d1117 40%, #111827 100%)',
               position: 'relative',
             }}
           >

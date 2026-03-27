@@ -4,75 +4,51 @@ import { getEntries } from '../data/store';
 export default function Playlists() {
   const entries = useMemo(() => getEntries().filter(e => e.songName), []);
 
-  // "Light days" playlist — songs from highest valence days
-  const lightDays = useMemo(() => {
-    return entries
-      .filter(e => e.songFeatures?.valence > 0.6)
+  const lightDays = useMemo(() =>
+    entries.filter(e => e.songFeatures?.valence > 0.6)
       .sort((a, b) => (b.songFeatures?.valence || 0) - (a.songFeatures?.valence || 0))
-      .slice(0, 8);
-  }, [entries]);
+      .slice(0, 8),
+  [entries]);
 
-  // "Comfort songs" — songs during recovery transitions (after low stretch)
   const comfortSongs = useMemo(() => {
     const sorted = [...entries].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
     const comfort = [];
     for (let i = 1; i < sorted.length; i++) {
       const prev = sorted[i - 1].songFeatures?.valence || 0.5;
       const curr = sorted[i].songFeatures?.valence || 0.5;
-      if (prev < 0.35 && curr > prev + 0.15) {
-        comfort.push(sorted[i]);
-      }
+      if (prev < 0.35 && curr > prev + 0.15) comfort.push(sorted[i]);
     }
-    if (comfort.length < 3) {
-      // Fallback: mid-valence songs
-      return entries
-        .filter(e => (e.songFeatures?.valence || 0) > 0.4 && (e.songFeatures?.valence || 0) < 0.7)
-        .slice(0, 6);
-    }
-    return comfort.slice(0, 8);
+    return comfort.length >= 3 ? comfort.slice(0, 8) : entries.filter(e => (e.songFeatures?.valence || 0) > 0.4 && (e.songFeatures?.valence || 0) < 0.7).slice(0, 6);
   }, [entries]);
 
   return (
     <div className="pb-6 px-5 pt-6 max-w-lg mx-auto page-enter">
-      <div className="mb-8">
-        <h1 className="font-serif text-3xl text-white mb-1">Playlists</h1>
-        <p className="text-sm text-gray-500">Your emotional soundtracks</p>
+      <div style={{ marginBottom: '28px' }}>
+        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '32px', fontWeight: 600, color: '#F0EDE6', letterSpacing: '-0.02em', margin: '0 0 4px' }}>Playlists</h1>
+        <p style={{ fontSize: '13px', color: '#6B6777', margin: 0 }}>Your emotional soundtracks</p>
       </div>
 
-      <div className="space-y-8 stagger-children">
-        {/* Light Days Playlist */}
-        <PlaylistSection
-          title="Your light days"
-          subtitle="Songs from your brightest moments"
-          tracks={lightDays}
-          accentColor="#f0a050"
-        />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+        <PlaylistSection title="Your light days" subtitle="Songs from your brightest moments" tracks={lightDays} accentColor="#F5A623" />
+        <PlaylistSection title="Your comfort songs" subtitle="The soundtrack of your recoveries" tracks={comfortSongs} accentColor="#B8A9FF" />
 
-        {/* Comfort Songs */}
-        <PlaylistSection
-          title="Your comfort songs"
-          subtitle="The soundtrack of your recoveries"
-          tracks={comfortSongs}
-          accentColor="#b09cdf"
-        />
-
-        {/* In-the-moment suggestion */}
         {comfortSongs.length > 0 && (
-          <div className="glass rounded-2xl p-5 border border-aura-lavender/10">
-            <p className="text-sm text-gray-400 mb-3">
+          <div className="glass" style={{ borderRadius: '20px', padding: '18px', borderLeft: '3px solid #B8A9FF' }}>
+            <p style={{ fontSize: '13px', color: '#9B97A0', marginBottom: '12px', lineHeight: 1.6 }}>
               Last time things felt heavy, these songs were playing when things started getting better:
             </p>
-            <div className="space-y-2">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {comfortSongs.slice(0, 3).map((track, i) => (
-                <div key={i} className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/3 transition-colors">
-                  <div className="w-8 h-8 rounded-lg bg-aura-card flex items-center justify-center">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="text-aura-lavender">
-                      <polygon points="5 3 19 12 5 21 5 3" />
-                    </svg>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px', borderRadius: '12px', transition: 'background 0.2s', cursor: 'pointer' }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                >
+                  <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'rgba(184,169,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#B8A9FF"><polygon points="5 3 19 12 5 21 5 3" /></svg>
                   </div>
                   <div>
-                    <p className="text-sm text-white">{track.songName}</p>
-                    <p className="text-[11px] text-gray-500">{track.songArtist}</p>
+                    <p style={{ fontSize: '13px', color: '#F0EDE6', margin: 0 }}>{track.songName}</p>
+                    <p style={{ fontSize: '11px', color: '#6B6777', margin: '1px 0 0' }}>{track.songArtist}</p>
                   </div>
                 </div>
               ))}
@@ -87,53 +63,56 @@ export default function Playlists() {
 function PlaylistSection({ title, subtitle, tracks, accentColor }) {
   return (
     <div>
-      <div className="flex items-center gap-3 mb-4">
-        <div
-          className="w-14 h-14 rounded-xl flex items-center justify-center"
-          style={{ background: `linear-gradient(135deg, ${accentColor}30, ${accentColor}10)` }}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={accentColor} strokeWidth="1.5">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '14px' }}>
+        <div style={{
+          width: '52px', height: '52px', borderRadius: '16px',
+          background: `linear-gradient(135deg, ${accentColor}25, ${accentColor}10)`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: `0 0 20px ${accentColor}15`,
+        }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={accentColor} strokeWidth="1.5">
             <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
           </svg>
         </div>
         <div>
-          <h2 className="font-serif text-lg text-white">{title}</h2>
-          <p className="text-xs text-gray-500">{subtitle}</p>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '17px', color: '#F0EDE6', margin: '0 0 2px' }}>{title}</h2>
+          <p style={{ fontSize: '12px', color: '#6B6777', margin: 0 }}>{subtitle}</p>
         </div>
       </div>
 
       {tracks.length === 0 ? (
-        <p className="text-sm text-gray-600 text-center py-6">Keep expressing to build this playlist</p>
+        <p style={{ fontSize: '13px', color: '#6B6777', textAlign: 'center', padding: '24px 0' }}>Keep expressing to build this playlist</p>
       ) : (
-        <div className="glass rounded-2xl overflow-hidden">
+        <div className="glass" style={{ borderRadius: '18px', overflow: 'hidden' }}>
           {tracks.map((track, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-3 p-3 border-b border-white/3 last:border-0 hover:bg-white/3 transition-colors"
+            <div key={i} style={{
+              display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px',
+              borderBottom: i < tracks.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+              transition: 'background 0.2s', cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
             >
-              <span className="text-xs text-gray-600 w-5 text-right">{i + 1}</span>
-              <div className="w-10 h-10 rounded-lg bg-aura-card flex items-center justify-center shrink-0">
+              <span style={{ fontSize: '12px', color: '#6B6777', width: '20px', textAlign: 'right' }}>{i + 1}</span>
+              <div style={{
+                width: '40px', height: '40px', borderRadius: '10px', flexShrink: 0,
+                background: 'rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
                 {track.songAlbumArt ? (
-                  <img src={track.songAlbumArt} alt="" className="w-full h-full rounded-lg" />
+                  <img src={track.songAlbumArt} alt="" style={{ width: '100%', height: '100%', borderRadius: '10px' }} />
                 ) : (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-gray-500">
-                    <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
-                  </svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B6777" strokeWidth="1.5"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
                 )}
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-white truncate">{track.songName}</p>
-                <p className="text-[11px] text-gray-500 truncate">{track.songArtist}</p>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: '13px', color: '#F0EDE6', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.songName}</p>
+                <p style={{ fontSize: '11px', color: '#6B6777', margin: '1px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.songArtist}</p>
               </div>
               {track.songFeatures && (
-                <div
-                  className="w-2 h-6 rounded-full"
-                  style={{
-                    background: `linear-gradient(to top,
-                      hsl(${30 + track.songFeatures.valence * 120}, 60%, 35%),
-                      hsl(${30 + track.songFeatures.valence * 120}, 60%, 50%))`,
-                  }}
-                />
+                <div style={{
+                  width: '4px', height: '24px', borderRadius: '4px',
+                  background: `linear-gradient(to top, hsl(${30 + track.songFeatures.valence * 120}, 60%, 35%), hsl(${30 + track.songFeatures.valence * 120}, 60%, 50%))`,
+                }} />
               )}
             </div>
           ))}

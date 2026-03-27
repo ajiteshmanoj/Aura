@@ -1,69 +1,141 @@
-import { useState } from 'react';
-
-// Curated palette: rows = hue families, columns = light → dark shades
-const PALETTE = [
-  // Reds / Warm
-  ['#ffcdd2', '#ef9a9a', '#e57373', '#ef5350', '#e53935', '#c62828', '#b71c1c'],
-  // Corals / Orange
-  ['#ffccbc', '#ffab91', '#ff8a65', '#ff7043', '#f4511e', '#d84315', '#bf360c'],
-  // Ambers / Yellow
-  ['#fff9c4', '#fff176', '#ffee58', '#fdd835', '#f9a825', '#f57f17', '#e65100'],
-  // Greens
-  ['#c8e6c9', '#a5d6a7', '#81c784', '#66bb6a', '#43a047', '#2e7d32', '#1b5e20'],
-  // Teals
-  ['#b2dfdb', '#80cbc4', '#4db6ac', '#26a69a', '#00897b', '#00695c', '#004d40'],
-  // Blues
-  ['#bbdefb', '#90caf9', '#64b5f6', '#42a5f5', '#1e88e5', '#1565c0', '#0d47a1'],
-  // Indigos
-  ['#c5cae9', '#9fa8da', '#7986cb', '#5c6bc0', '#3949ab', '#283593', '#1a237e'],
-  // Purples / Lavender
-  ['#e1bee7', '#ce93d8', '#ba68c8', '#ab47bc', '#8e24aa', '#6a1b9a', '#4a148c'],
-  // Pinks
-  ['#f8bbd0', '#f48fb1', '#f06292', '#ec407a', '#d81b60', '#ad1457', '#880e4f'],
-  // Neutrals / Greys
-  ['#f5f5f5', '#bdbdbd', '#9e9e9e', '#757575', '#616161', '#424242', '#212121'],
-];
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 export default function ColourPicker({ value, onChange }) {
-  const [hoveredColour, setHoveredColour] = useState(null);
+  const canvasRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const size = canvas.width;
+    const center = size / 2;
+    const radius = center - 8;
+
+    ctx.clearRect(0, 0, size, size);
+
+    // Draw circular HSL colour wheel
+    for (let angle = 0; angle < 360; angle++) {
+      const startAngle = (angle - 1) * Math.PI / 180;
+      const endAngle = (angle + 1) * Math.PI / 180;
+
+      for (let r = 0; r < radius; r++) {
+        const saturation = (r / radius) * 100;
+        ctx.beginPath();
+        ctx.arc(center, center, r, startAngle, endAngle);
+        ctx.strokeStyle = `hsl(${angle}, ${saturation}%, ${50 + (1 - r / radius) * 20}%)`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    }
+
+    // Draw inner dark circle for depth
+    const innerGrad = ctx.createRadialGradient(center, center, 0, center, center, radius * 0.15);
+    innerGrad.addColorStop(0, 'rgba(10,10,26,0.6)');
+    innerGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = innerGrad;
+    ctx.beginPath();
+    ctx.arc(center, center, radius * 0.15, 0, Math.PI * 2);
+    ctx.fill();
+  }, []);
+
+  const pickColour = useCallback((clientX, clientY) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    const size = rect.width;
+    const center = size / 2;
+
+    const dx = x - center;
+    const dy = y - center;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const radius = center - 8;
+
+    if (dist > radius + 10) return;
+
+    let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    if (angle < 0) angle += 360;
+
+    const saturation = Math.min(100, (dist / radius) * 100);
+    const lightness = 50 + (1 - dist / radius) * 20;
+
+    const hex = hslToHex(angle, saturation, lightness);
+    onChange(hex);
+  }, [onChange]);
+
+  const handlePointerDown = (e) => {
+    setIsDragging(true);
+    pickColour(e.clientX, e.clientY);
+  };
+  const handlePointerMove = (e) => {
+    if (isDragging) pickColour(e.clientX, e.clientY);
+  };
+  const handlePointerUp = () => setIsDragging(false);
 
   return (
-    <div className="space-y-4">
-      {/* Colour grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px' }}>
-        {PALETTE.flat().map((hex) => {
-          const isSelected = value === hex;
-          return (
-            <button
-              key={hex}
-              onClick={() => onChange(hex)}
-              onMouseEnter={() => setHoveredColour(hex)}
-              onMouseLeave={() => setHoveredColour(null)}
-              className="aspect-square rounded-lg transition-all duration-200 border-2"
-              style={{
-                backgroundColor: hex,
-                borderColor: isSelected ? '#fff' : 'transparent',
-                transform: isSelected ? 'scale(1.15)' : hoveredColour === hex ? 'scale(1.08)' : 'scale(1)',
-                boxShadow: isSelected ? `0 0 20px ${hex}60, 0 0 40px ${hex}30` : 'none',
-              }}
-            />
-          );
-        })}
-      </div>
-
-      {/* Selected colour preview */}
-      {value && (
-        <div className="flex items-center gap-3 animate-bloom">
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+      {/* Circular colour wheel */}
+      <div style={{ position: 'relative', width: '220px', height: '220px' }}>
+        <canvas
+          ref={canvasRef}
+          width={440}
+          height={440}
+          style={{
+            width: '220px',
+            height: '220px',
+            borderRadius: '50%',
+            cursor: 'crosshair',
+            touchAction: 'none',
+            boxShadow: value
+              ? `0 0 40px ${value}30, 0 0 80px ${value}15`
+              : '0 0 40px rgba(245,166,35,0.1)',
+            transition: 'box-shadow 0.5s ease',
+          }}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerLeave={handlePointerUp}
+        />
+        {/* Center preview */}
+        {value && (
           <div
-            className="w-10 h-10 rounded-xl shadow-lg transition-all duration-500"
             style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
               backgroundColor: value,
-              boxShadow: `0 0 30px ${value}40, 0 0 60px ${value}20`,
+              border: '3px solid rgba(255,255,255,0.2)',
+              boxShadow: `0 0 24px ${value}60, 0 0 48px ${value}30`,
+              pointerEvents: 'none',
+              animation: 'softPulse 3s ease-in-out infinite',
             }}
           />
-          <span className="text-sm text-gray-400 font-mono">{value}</span>
-        </div>
+        )}
+      </div>
+
+      {/* Selected colour label */}
+      {value && (
+        <span style={{ fontSize: '13px', color: '#6B6777', fontFamily: 'monospace', letterSpacing: '0.05em' }}>
+          {value}
+        </span>
       )}
     </div>
   );
+}
+
+function hslToHex(h, s, l) {
+  s /= 100; l /= 100;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n) => {
+    const k = (n + h / 30) % 12;
+    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * color).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
 }

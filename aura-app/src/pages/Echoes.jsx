@@ -10,55 +10,50 @@ export default function Echoes() {
   const [contribution, setContribution] = useState('');
   const [contributed, setContributed] = useState(false);
 
-  // Match echoes based on latest entry, or show all
   const displayedEchoes = useMemo(() => {
-    if (filter === 'matched' && latestEntry) {
-      return matchEchoes(latestEntry, 6);
-    }
+    if (filter === 'matched' && latestEntry) return matchEchoes(latestEntry, 6);
     if (filter === 'low') return echoCards.filter(e => e.tags.expressionValence === 'low');
     if (filter === 'recovery') return echoCards.filter(e => e.tags.expressionValence !== 'low');
     return echoCards;
   }, [filter, latestEntry]);
 
-  // Check if user has recovered (for contribution prompt)
   const hasRecovered = useMemo(() => {
     if (entries.length < 6) return false;
     const recent = entries.slice(-3);
     const prior = entries.slice(-6, -3);
-    const recentAvg = recent.reduce((s, e) => {
-      const { r, g, b } = hexToRgb(e.colour || '#555');
-      return s + (r + g + b) / 3;
-    }, 0) / 3;
-    const priorAvg = prior.reduce((s, e) => {
-      const { r, g, b } = hexToRgb(e.colour || '#555');
-      return s + (r + g + b) / 3;
-    }, 0) / 3;
-    return recentAvg > priorAvg + 30;
+    const avg = (arr) => arr.reduce((s, e) => { const { r, g, b } = hexToRgb(e.colour || '#555'); return s + (r + g + b) / 3; }, 0) / 3;
+    return avg(recent) > avg(prior) + 30;
   }, [entries]);
+
+  const filters = [
+    { key: 'all', label: 'All' },
+    { key: 'matched', label: 'For you' },
+    { key: 'low', label: 'Tough moments' },
+    { key: 'recovery', label: 'Recovery' },
+  ];
 
   return (
     <div className="pb-6 px-5 pt-6 max-w-lg mx-auto page-enter">
-      <div className="mb-6">
-        <h1 className="font-serif text-3xl text-white mb-1">Echoes</h1>
-        <p className="text-sm text-gray-500">You're not alone in this</p>
+      <div style={{ marginBottom: '20px' }}>
+        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '32px', fontWeight: 600, color: '#F0EDE6', letterSpacing: '-0.02em', margin: '0 0 4px' }}>Echoes</h1>
+        <p style={{ fontSize: '13px', color: '#6B6777', margin: 0 }}>You're not alone in this</p>
       </div>
 
-      {/* Filter tabs */}
-      <div className="flex gap-2 mb-6 overflow-x-auto hide-scrollbar">
-        {[
-          { key: 'all', label: 'All' },
-          { key: 'matched', label: 'For you' },
-          { key: 'low', label: 'Tough moments' },
-          { key: 'recovery', label: 'Recovery' },
-        ].map(({ key, label }) => (
+      {/* Filter pills */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', overflowX: 'auto' }} className="hide-scrollbar">
+        {filters.map(({ key, label }) => (
           <button
             key={key}
             onClick={() => setFilter(key)}
-            className={`px-4 py-1.5 rounded-full text-sm whitespace-nowrap transition-all ${
-              filter === key
-                ? 'bg-aura-amber/20 text-aura-amber border border-aura-amber/30'
-                : 'glass text-gray-400 hover:text-gray-300'
-            }`}
+            style={{
+              padding: '8px 18px', borderRadius: '20px', fontSize: '13px', fontWeight: 500,
+              whiteSpace: 'nowrap', cursor: 'pointer', transition: 'all 0.3s', border: 'none',
+              background: filter === key
+                ? 'linear-gradient(135deg, rgba(245,166,35,0.2), rgba(255,107,138,0.15))'
+                : 'rgba(255,255,255,0.03)',
+              color: filter === key ? '#F5A623' : '#6B6777',
+              boxShadow: filter === key ? '0 0 0 1px rgba(245,166,35,0.2)' : '0 0 0 1px rgba(255,255,255,0.06)',
+            }}
           >
             {label}
           </button>
@@ -67,38 +62,44 @@ export default function Echoes() {
 
       {/* Recovery prompt */}
       {hasRecovered && !contributed && !showContribute && (
-        <div className="glass rounded-2xl p-5 mb-6 border border-aura-amber/10 animate-fade-in">
-          <p className="text-sm text-gray-300 mb-3">
-            You've been feeling lighter recently after a tough stretch.
-            Want to leave an Echo for someone going through something similar?
+        <div className="glass" style={{
+          borderRadius: '20px', padding: '20px', marginBottom: '20px',
+          border: '1px solid rgba(245,166,35,0.15)',
+          boxShadow: '0 0 30px rgba(245,166,35,0.05), 0 0 0 1px rgba(245,166,35,0.1)',
+          animation: 'fadeInUp 0.5s ease-out both',
+        }}>
+          <p style={{ fontSize: '14px', color: '#F0EDE6', marginBottom: '12px', lineHeight: 1.6 }}>
+            You've been feeling lighter recently after a tough stretch. Want to leave an Echo for someone going through something similar?
           </p>
-          <button
-            onClick={() => setShowContribute(true)}
-            className="text-sm text-aura-amber hover:text-aura-amber/80 transition-colors"
-          >
-            Leave an Echo
+          <button onClick={() => setShowContribute(true)} style={{ fontSize: '13px', color: '#F5A623', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+            Leave an Echo →
           </button>
         </div>
       )}
 
       {/* Contribution form */}
       {showContribute && !contributed && (
-        <div className="glass rounded-2xl p-5 mb-6 animate-fade-in-up">
-          <p className="text-sm text-gray-400 mb-3">What helped you?</p>
+        <div className="glass" style={{ borderRadius: '20px', padding: '20px', marginBottom: '20px', animation: 'fadeInUp 0.5s ease-out both' }}>
+          <p style={{ fontSize: '13px', color: '#9B97A0', marginBottom: '12px' }}>What helped you?</p>
           <textarea
             value={contribution}
             onChange={(e) => setContribution(e.target.value)}
             placeholder="Something small that made a difference..."
             rows={3}
-            className="w-full bg-aura-card/60 border border-aura-border/50 rounded-xl py-3 px-4 text-white placeholder-gray-600 focus:outline-none focus:border-aura-amber/40 transition-all resize-none text-sm mb-3"
+            style={{
+              width: '100%', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+              borderRadius: '14px', padding: '12px', color: '#F0EDE6', fontSize: '13px',
+              outline: 'none', resize: 'none', marginBottom: '12px', boxSizing: 'border-box',
+            }}
           />
           <button
-            onClick={() => {
-              setContributed(true);
-              setShowContribute(false);
-            }}
+            onClick={() => { setContributed(true); setShowContribute(false); }}
             disabled={!contribution.trim()}
-            className="w-full py-2.5 rounded-xl bg-aura-amber/20 text-aura-amber text-sm font-medium transition-all hover:bg-aura-amber/30 disabled:opacity-30"
+            style={{
+              width: '100%', padding: '10px', borderRadius: '14px', border: 'none', cursor: 'pointer',
+              background: 'rgba(245,166,35,0.15)', color: '#F5A623', fontSize: '13px', fontWeight: 600,
+              opacity: contribution.trim() ? 1 : 0.3,
+            }}
           >
             Share anonymously
           </button>
@@ -106,43 +107,38 @@ export default function Echoes() {
       )}
 
       {contributed && (
-        <div className="glass rounded-2xl p-5 mb-6 text-center animate-bloom">
-          <p className="text-sm text-aura-amber mb-1">Echo shared</p>
-          <p className="text-xs text-gray-500">Someone who needs it will find it</p>
+        <div className="glass" style={{ borderRadius: '20px', padding: '20px', marginBottom: '20px', textAlign: 'center', animation: 'bloom 0.6s ease-out both' }}>
+          <p style={{ fontSize: '14px', color: '#F5A623', margin: '0 0 4px' }}>Echo shared</p>
+          <p style={{ fontSize: '12px', color: '#6B6777', margin: 0 }}>Someone who needs it will find it</p>
         </div>
       )}
 
       {/* Echo Cards */}
-      <div className="space-y-3 stagger-children">
-        {displayedEchoes.map((echo) => (
-          <EchoCard key={echo.id} echo={echo} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {displayedEchoes.map((echo, i) => (
+          <EchoCard key={echo.id} echo={echo} delay={i * 80} />
         ))}
       </div>
     </div>
   );
 }
 
-function EchoCard({ echo }) {
+function EchoCard({ echo, delay }) {
   return (
-    <div className="glass rounded-2xl p-5 transition-all duration-300 hover:border-white/8">
-      <div className="flex items-start gap-3">
-        <div
-          className="w-3 h-3 rounded-full mt-1.5 shrink-0"
-          style={{
-            backgroundColor: echo.colour,
-            boxShadow: `0 0 12px ${echo.colour}50`,
-          }}
-        />
-        <div className="flex-1">
-          <p className="text-sm text-gray-300 italic mb-3">"{echo.feeling}"</p>
-          <p className="text-sm text-white/80 mb-2">{echo.copingAction}</p>
-          <div className="flex items-center gap-2">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-500">
-              <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-            </svg>
-            <span className="text-[11px] text-gray-500">{echo.timeToRecovery}</span>
-          </div>
-        </div>
+    <div className="glass" style={{
+      borderRadius: '20px', padding: '18px', borderLeft: `3px solid ${echo.colour}`,
+      background: `linear-gradient(135deg, ${echo.colour}06 0%, rgba(255,255,255,0.02) 100%)`,
+      animation: `fadeInUp 0.5s ease-out ${delay}ms both`,
+    }}>
+      <p style={{ fontSize: '14px', color: '#F0EDE6', fontFamily: "'Playfair Display', serif", fontStyle: 'italic', marginBottom: '12px', lineHeight: 1.5, opacity: 0.9 }}>
+        "{echo.feeling}"
+      </p>
+      <p style={{ fontSize: '13px', color: '#9B97A0', marginBottom: '10px', lineHeight: 1.5 }}>
+        {echo.copingAction}
+      </p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6B6777" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+        <span style={{ fontSize: '11px', color: '#6B6777' }}>{echo.timeToRecovery}</span>
       </div>
     </div>
   );
@@ -150,9 +146,5 @@ function EchoCard({ echo }) {
 
 function hexToRgb(hex) {
   const h = hex.replace('#', '');
-  return {
-    r: parseInt(h.substr(0, 2), 16),
-    g: parseInt(h.substr(2, 2), 16),
-    b: parseInt(h.substr(4, 2), 16),
-  };
+  return { r: parseInt(h.substr(0, 2), 16), g: parseInt(h.substr(2, 2), 16), b: parseInt(h.substr(4, 2), 16) };
 }
