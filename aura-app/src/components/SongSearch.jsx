@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { searchTracks, generateMockAudioFeatures } from '../utils/spotify';
 
 export default function SongSearch({ spotifyToken, onSelect, selected }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
+  const wrapperRef = useRef(null);
 
   useEffect(() => {
     if (!query.trim() || !spotifyToken) {
@@ -19,6 +20,17 @@ export default function SongSearch({ spotifyToken, onSelect, selected }) {
     }, 400);
     return () => clearTimeout(timer);
   }, [query, spotifyToken]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+        setResults([]);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSelect = (track) => {
     const features = generateMockAudioFeatures(track.id);
@@ -60,7 +72,7 @@ export default function SongSearch({ spotifyToken, onSelect, selected }) {
   }
 
   return (
-    <div className="relative">
+    <div ref={wrapperRef} style={{ position: 'relative', zIndex: 50 }}>
       <div className="relative">
         <svg className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
@@ -81,12 +93,29 @@ export default function SongSearch({ spotifyToken, onSelect, selected }) {
       </div>
 
       {results.length > 0 && (
-        <div className="absolute z-10 w-full mt-2 glass rounded-xl overflow-hidden shadow-2xl">
+        <div
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
+            marginTop: '8px',
+            zIndex: 9999,
+            backgroundColor: '#0f1017',
+            borderRadius: '12px',
+            border: '1px solid #2a2b36',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.8), 0 8px 20px rgba(0,0,0,0.6)',
+            maxHeight: '250px',
+            overflowY: 'auto',
+            isolation: 'isolate',
+          }}
+        >
           {results.map((track) => (
             <button
               key={track.id}
               onClick={() => handleSelect(track)}
-              className="w-full flex items-center gap-3 p-3 hover:bg-white/5 transition-colors text-left"
+              style={{ backgroundColor: '#0f1017' }}
+              className="w-full flex items-center gap-3 p-3 hover:!bg-[#1a1b24] transition-colors text-left border-b border-white/5 last:border-0"
             >
               {track.albumArt && (
                 <img src={track.albumArt} alt="" className="w-10 h-10 rounded-lg" />

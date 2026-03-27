@@ -15,11 +15,19 @@ function SpotifyCallback() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
+    console.log('Spotify callback - code:', code);
     if (code) {
       handleSpotifyCallback(code).then(token => {
+        console.log('Spotify token received:', !!token);
         if (token) setSpotifyToken(token);
-        window.location.href = '/express';
+        window.location.href = window.location.origin + '/express';
+      }).catch(err => {
+        console.error('Spotify callback error:', err);
+        window.location.href = window.location.origin + '/express';
       });
+    } else {
+      console.log('No code in callback URL, redirecting to express');
+      window.location.href = window.location.origin + '/express';
     }
   }, []);
   return <div className="min-h-dvh flex items-center justify-center text-gray-400">Connecting Spotify...</div>;

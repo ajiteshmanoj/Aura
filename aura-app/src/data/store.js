@@ -23,19 +23,19 @@ export function setEntries(entries) {
 }
 
 export function getSpotifyToken() {
-  return sessionStorage.getItem(SPOTIFY_TOKEN_KEY);
+  return localStorage.getItem(SPOTIFY_TOKEN_KEY);
 }
 
 export function setSpotifyToken(token) {
-  sessionStorage.setItem(SPOTIFY_TOKEN_KEY, token);
+  localStorage.setItem(SPOTIFY_TOKEN_KEY, token);
 }
 
 export function getGoogleToken() {
-  return sessionStorage.getItem(GOOGLE_TOKEN_KEY);
+  return localStorage.getItem(GOOGLE_TOKEN_KEY);
 }
 
 export function setGoogleToken(token) {
-  sessionStorage.setItem(GOOGLE_TOKEN_KEY, token);
+  localStorage.setItem(GOOGLE_TOKEN_KEY, token);
 }
 
 export function getEntriesForDateRange(startDate, endDate) {

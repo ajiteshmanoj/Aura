@@ -1,9 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ColourPicker from '../components/ColourPicker';
 import SongSearch from '../components/SongSearch';
-import { saveEntry } from '../data/store';
-import { getSpotifyToken } from '../data/store';
+import { saveEntry, getSpotifyToken } from '../data/store';
 
 export default function Express() {
   const navigate = useNavigate();
@@ -13,8 +12,12 @@ export default function Express() {
   const [freeform, setFreeform] = useState('');
   const [photo, setPhoto] = useState(null);
   const [saved, setSaved] = useState(false);
+  const [spotifyToken, setSpotifyToken] = useState(null);
   const fileRef = useRef(null);
-  const spotifyToken = getSpotifyToken();
+
+  useEffect(() => {
+    setSpotifyToken(getSpotifyToken());
+  }, []);
 
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
@@ -65,7 +68,7 @@ export default function Express() {
         <p className="text-sm text-gray-500">How are you feeling right now?</p>
       </div>
 
-      <div className="space-y-8 stagger-children">
+      <div className="space-y-8">
         {/* Colour Picker */}
         <Section
           title="Pick a colour"
@@ -75,18 +78,20 @@ export default function Express() {
           <ColourPicker value={colour} onChange={setColour} />
         </Section>
 
-        {/* Song of the Day */}
-        <Section
-          title="Song of the day"
-          subtitle="What are you listening to?"
-          icon="music"
-        >
-          <SongSearch
-            spotifyToken={spotifyToken}
-            selected={song}
-            onSelect={setSong}
-          />
-        </Section>
+        {/* Song of the Day — pulled out of stagger-children so dropdown z-index works */}
+        <div style={{ position: 'relative', zIndex: 100 }}>
+          <Section
+            title="Song of the day"
+            subtitle="What are you listening to?"
+            icon="music"
+          >
+            <SongSearch
+              spotifyToken={spotifyToken}
+              selected={song}
+              onSelect={setSong}
+            />
+          </Section>
+        </div>
 
         {/* Metaphor */}
         <Section

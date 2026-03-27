@@ -1,5 +1,5 @@
 const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID || '';
-const REDIRECT_URI = `${window.location.origin}/callback/spotify`;
+const REDIRECT_URI = 'http://127.0.0.1:3000/callback/spotify';
 const SCOPES = 'user-read-recently-played user-top-read';
 
 function generateCodeVerifier() {
@@ -35,6 +35,10 @@ export async function initiateSpotifyAuth() {
 
 export async function handleSpotifyCallback(code) {
   const verifier = sessionStorage.getItem('spotify_verifier');
+  if (!verifier) {
+    console.error('Spotify: No code verifier found in sessionStorage');
+    return null;
+  }
   const res = await fetch('https://accounts.spotify.com/api/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -47,6 +51,10 @@ export async function handleSpotifyCallback(code) {
     }),
   });
   const data = await res.json();
+  if (data.error) {
+    console.error('Spotify token error:', data.error, data.error_description);
+    return null;
+  }
   return data.access_token;
 }
 
