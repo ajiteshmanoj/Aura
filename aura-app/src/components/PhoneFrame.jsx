@@ -24,11 +24,25 @@ export default function PhoneFrame({ children, bottomNav }) {
     return () => clearInterval(interval);
   }, [isDesktop]);
 
-  // Mobile: render normally
+  // Mobile: render normally with ambient glows
   if (!isDesktop) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
-        <div style={{ flex: 1 }}>{children}</div>
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', position: 'relative', overflow: 'hidden' }}>
+        <div style={{
+          position: 'fixed', top: '-20%', right: '-20%', width: '60%', height: '60%',
+          background: `radial-gradient(circle, ${ambientColour}20 0%, transparent 70%)`,
+          filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0,
+          animation: 'drift 20s ease-in-out infinite alternate',
+          transition: 'background 2s ease',
+        }} />
+        <div style={{
+          position: 'fixed', bottom: '-15%', left: '-15%', width: '40%', height: '40%',
+          background: `radial-gradient(circle, ${getComplementary(ambientColour)}12 0%, transparent 70%)`,
+          filter: 'blur(60px)', pointerEvents: 'none', zIndex: 0,
+          animation: 'driftReverse 25s ease-in-out infinite alternate',
+          transition: 'background 2s ease',
+        }} />
+        <div style={{ flex: 1, position: 'relative', zIndex: 1 }}>{children}</div>
         {bottomNav}
       </div>
     );
@@ -134,9 +148,27 @@ export default function PhoneFrame({ children, bottomNav }) {
                 WebkitOverflowScrolling: 'touch',
                 scrollBehavior: 'smooth',
                 scrollbarWidth: 'none',
+                position: 'relative',
               }}
             >
-              {children}
+              {/* Ambient glow orbs inside scroll area */}
+              <div style={{
+                position: 'absolute', top: '-10%', right: '-20%', width: '70%', height: '50%',
+                background: `radial-gradient(circle, ${ambientColour}28 0%, transparent 70%)`,
+                filter: 'blur(60px)', pointerEvents: 'none', zIndex: 0,
+                animation: 'drift 20s ease-in-out infinite alternate',
+                transition: 'background 2s ease',
+              }} />
+              <div style={{
+                position: 'absolute', top: '40%', left: '-15%', width: '50%', height: '40%',
+                background: `radial-gradient(circle, ${getComplementary(ambientColour)}18 0%, transparent 70%)`,
+                filter: 'blur(50px)', pointerEvents: 'none', zIndex: 0,
+                animation: 'driftReverse 25s ease-in-out infinite alternate',
+                transition: 'background 2s ease',
+              }} />
+              <div style={{ position: 'relative', zIndex: 1 }}>
+                {children}
+              </div>
             </div>
 
             {/* Bottom nav — fixed at bottom of phone, outside scroll */}
@@ -168,4 +200,16 @@ export default function PhoneFrame({ children, bottomNav }) {
       `}</style>
     </div>
   );
+}
+
+function getComplementary(hex) {
+  try {
+    const h = hex.replace('#', '');
+    const r = 255 - parseInt(h.substr(0, 2), 16);
+    const g = 255 - parseInt(h.substr(2, 2), 16);
+    const b = 255 - parseInt(h.substr(4, 2), 16);
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+  } catch {
+    return '#B8A9FF';
+  }
 }
