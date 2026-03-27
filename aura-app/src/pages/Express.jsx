@@ -46,7 +46,7 @@ export default function Express() {
 
   if (saved) {
     return (
-      <div className="min-h-dvh flex flex-col items-center justify-center px-6 page-enter">
+      <div className="flex flex-col items-center justify-center px-6 page-enter h-full">
         <div
           className="w-24 h-24 rounded-full mb-6 animate-bloom"
           style={{
@@ -61,7 +61,7 @@ export default function Express() {
   }
 
   return (
-    <div className="min-h-dvh pb-24 px-5 pt-6 max-w-lg mx-auto page-enter">
+    <div className="pb-6 px-5 pt-6 max-w-lg mx-auto page-enter">
       {/* Header */}
       <div className="mb-8">
         <h1 className="font-serif text-3xl text-white mb-1">Express</h1>

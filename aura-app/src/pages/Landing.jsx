@@ -15,7 +15,7 @@ export default function Landing() {
   const hasEntries = getEntries().length > 0;
 
   return (
-    <div className="min-h-dvh flex flex-col items-center justify-center px-6 relative overflow-hidden">
+    <div className="flex flex-col items-center justify-center px-6 relative overflow-hidden h-full min-h-[600px]">
       {/* Ambient background glow */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-aura-amber/5 rounded-full blur-3xl" />

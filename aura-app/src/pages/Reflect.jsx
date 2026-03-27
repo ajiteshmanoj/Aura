@@ -20,7 +20,7 @@ export default function Reflect() {
   }, [entries]);
 
   return (
-    <div className="min-h-dvh pb-24 px-5 pt-6 max-w-lg mx-auto page-enter">
+    <div className="pb-6 px-5 pt-6 max-w-lg mx-auto page-enter">
       <div className="mb-6 flex items-start justify-between">
         <div>
           <h1 className="font-serif text-3xl text-white mb-1">Reflect</h1>
@@ -33,11 +33,11 @@ export default function Reflect() {
       </div>
 
       {/* Quick links */}
-      <div className="flex gap-2 mb-6">
-        <Link to="/report" className="flex-1 glass rounded-xl py-2.5 text-center text-sm text-gray-400 hover:text-aura-lavender transition-colors">
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
+        <Link to="/report" style={{ flex: 1 }} className="glass rounded-xl py-2.5 text-center text-sm text-gray-400 hover:text-aura-lavender transition-colors">
           Weekly Report
         </Link>
-        <Link to="/playlists" className="flex-1 glass rounded-xl py-2.5 text-center text-sm text-gray-400 hover:text-aura-amber transition-colors">
+        <Link to="/playlists" style={{ flex: 1 }} className="glass rounded-xl py-2.5 text-center text-sm text-gray-400 hover:text-aura-amber transition-colors">
           Playlists
         </Link>
       </div>
@@ -59,12 +59,12 @@ export default function Reflect() {
         {/* Colour Ribbon */}
         <div>
           <h2 className="font-serif text-lg text-white mb-3">Your colours</h2>
-          <div className="flex gap-1 h-10 rounded-xl overflow-hidden">
+          <div style={{ display: 'flex', gap: '2px', height: '40px', borderRadius: '12px', overflow: 'hidden' }}>
             {entries.slice(0, 21).map((entry, i) => (
               <div
                 key={entry.id}
-                className="flex-1 transition-all duration-500 hover:flex-[2] cursor-pointer group relative"
-                style={{ backgroundColor: entry.colour || '#2a2b36' }}
+                className="transition-all duration-500 cursor-pointer group relative"
+                style={{ flex: 1, backgroundColor: entry.colour || '#2a2b36' }}
                 title={new Date(entry.timestamp).toLocaleDateString()}
               >
                 <div className="absolute inset-x-0 bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
@@ -80,7 +80,7 @@ export default function Reflect() {
         {/* Calendar Heatmap */}
         <div>
           <h2 className="font-serif text-lg text-white mb-3">Schedule density</h2>
-          <div className="grid grid-cols-7 gap-1.5">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px' }}>
             {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
               <div key={i} className="text-[10px] text-gray-500 text-center font-medium">{d}</div>
             ))}
@@ -112,12 +112,12 @@ export default function Reflect() {
         <div>
           <h2 className="font-serif text-lg text-white mb-3">Music mood</h2>
           <div className="glass rounded-2xl p-4">
-            <div className="flex items-end gap-1 h-24">
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '2px', height: '96px' }}>
               {entries.slice(0, 14).reverse().map((entry, i) => {
                 const valence = entry.songFeatures?.valence ?? 0.5;
                 const energy = entry.songFeatures?.energy ?? 0.5;
                 return (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-1 group relative">
+                  <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }} className="group relative">
                     <div
                       className="w-full rounded-t-lg transition-all duration-300 group-hover:opacity-80"
                       style={{
@@ -136,7 +136,7 @@ export default function Reflect() {
                 );
               })}
             </div>
-            <div className="flex justify-between mt-2">
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
               <span className="text-[10px] text-gray-500">2 weeks ago</span>
               <span className="text-[10px] text-gray-500">today</span>
             </div>
@@ -159,7 +159,7 @@ export default function Reflect() {
                 {beforeAfterPairs.map(({ before, after, event }) => (
                   <div key={event} className="glass rounded-2xl p-4">
                     <p className="text-sm text-gray-400 mb-3">{event}</p>
-                    <div className="flex items-center gap-4">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                       <div className="flex-1 text-center">
                         <div
                           className="w-12 h-12 rounded-full mx-auto mb-1"

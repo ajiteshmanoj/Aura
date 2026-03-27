@@ -1,99 +1,55 @@
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
+
+// Curated palette: rows = hue families, columns = light → dark shades
+const PALETTE = [
+  // Reds / Warm
+  ['#ffcdd2', '#ef9a9a', '#e57373', '#ef5350', '#e53935', '#c62828', '#b71c1c'],
+  // Corals / Orange
+  ['#ffccbc', '#ffab91', '#ff8a65', '#ff7043', '#f4511e', '#d84315', '#bf360c'],
+  // Ambers / Yellow
+  ['#fff9c4', '#fff176', '#ffee58', '#fdd835', '#f9a825', '#f57f17', '#e65100'],
+  // Greens
+  ['#c8e6c9', '#a5d6a7', '#81c784', '#66bb6a', '#43a047', '#2e7d32', '#1b5e20'],
+  // Teals
+  ['#b2dfdb', '#80cbc4', '#4db6ac', '#26a69a', '#00897b', '#00695c', '#004d40'],
+  // Blues
+  ['#bbdefb', '#90caf9', '#64b5f6', '#42a5f5', '#1e88e5', '#1565c0', '#0d47a1'],
+  // Indigos
+  ['#c5cae9', '#9fa8da', '#7986cb', '#5c6bc0', '#3949ab', '#283593', '#1a237e'],
+  // Purples / Lavender
+  ['#e1bee7', '#ce93d8', '#ba68c8', '#ab47bc', '#8e24aa', '#6a1b9a', '#4a148c'],
+  // Pinks
+  ['#f8bbd0', '#f48fb1', '#f06292', '#ec407a', '#d81b60', '#ad1457', '#880e4f'],
+  // Neutrals / Greys
+  ['#f5f5f5', '#bdbdbd', '#9e9e9e', '#757575', '#616161', '#424242', '#212121'],
+];
 
 export default function ColourPicker({ value, onChange }) {
-  const canvasRef = useRef(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [pickerPos, setPickerPos] = useState({ x: 0.5, y: 0.5 });
-  const [hue, setHue] = useState(180);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const w = canvas.width;
-    const h = canvas.height;
-
-    // Draw saturation-lightness gradient
-    for (let x = 0; x < w; x++) {
-      for (let y = 0; y < h; y++) {
-        const s = (x / w) * 100;
-        const l = 100 - (y / h) * 100;
-        ctx.fillStyle = `hsl(${hue}, ${s}%, ${l}%)`;
-        ctx.fillRect(x, y, 1, 1);
-      }
-    }
-  }, [hue]);
-
-  const pickColour = useCallback((clientX, clientY) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const x = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    const y = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
-    setPickerPos({ x, y });
-
-    const s = Math.round(x * 100);
-    const l = Math.round(100 - y * 100);
-    const hex = hslToHex(hue, s, l);
-    onChange(hex);
-  }, [hue, onChange]);
-
-  const handlePointerDown = (e) => {
-    setIsDragging(true);
-    pickColour(e.clientX, e.clientY);
-  };
-
-  const handlePointerMove = (e) => {
-    if (!isDragging) return;
-    pickColour(e.clientX, e.clientY);
-  };
-
-  const handlePointerUp = () => setIsDragging(false);
+  const [hoveredColour, setHoveredColour] = useState(null);
 
   return (
     <div className="space-y-4">
-      <div className="relative">
-        <canvas
-          ref={canvasRef}
-          width={300}
-          height={200}
-          className="w-full h-48 rounded-2xl cursor-crosshair colour-wheel shadow-lg"
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerLeave={handlePointerUp}
-        />
-        {/* Picker indicator */}
-        <div
-          className="absolute w-6 h-6 rounded-full border-2 border-white shadow-lg pointer-events-none transition-transform duration-75"
-          style={{
-            left: `calc(${pickerPos.x * 100}% - 12px)`,
-            top: `calc(${pickerPos.y * 100}% - 12px)`,
-            backgroundColor: value || '#5ab5a0',
-            boxShadow: `0 0 20px ${value || '#5ab5a0'}60`,
-          }}
-        />
+      {/* Colour grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px' }}>
+        {PALETTE.flat().map((hex) => {
+          const isSelected = value === hex;
+          return (
+            <button
+              key={hex}
+              onClick={() => onChange(hex)}
+              onMouseEnter={() => setHoveredColour(hex)}
+              onMouseLeave={() => setHoveredColour(null)}
+              className="aspect-square rounded-lg transition-all duration-200 border-2"
+              style={{
+                backgroundColor: hex,
+                borderColor: isSelected ? '#fff' : 'transparent',
+                transform: isSelected ? 'scale(1.15)' : hoveredColour === hex ? 'scale(1.08)' : 'scale(1)',
+                boxShadow: isSelected ? `0 0 20px ${hex}60, 0 0 40px ${hex}30` : 'none',
+              }}
+            />
+          );
+        })}
       </div>
-
-      {/* Hue slider */}
-      <input
-        type="range"
-        min="0"
-        max="360"
-        value={hue}
-        onChange={(e) => {
-          setHue(Number(e.target.value));
-          const s = Math.round(pickerPos.x * 100);
-          const l = Math.round(100 - pickerPos.y * 100);
-          onChange(hslToHex(Number(e.target.value), s, l));
-        }}
-        className="w-full h-3 rounded-full appearance-none cursor-pointer"
-        style={{
-          background: `linear-gradient(to right,
-            hsl(0,100%,50%), hsl(60,100%,50%), hsl(120,100%,50%),
-            hsl(180,100%,50%), hsl(240,100%,50%), hsl(300,100%,50%), hsl(360,100%,50%))`,
-        }}
-      />
 
       {/* Selected colour preview */}
       {value && (
@@ -110,16 +66,4 @@ export default function ColourPicker({ value, onChange }) {
       )}
     </div>
   );
-}
-
-function hslToHex(h, s, l) {
-  s /= 100;
-  l /= 100;
-  const a = s * Math.min(l, 1 - l);
-  const f = (n) => {
-    const k = (n + h / 30) % 12;
-    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-    return Math.round(255 * color).toString(16).padStart(2, '0');
-  };
-  return `#${f(0)}${f(8)}${f(4)}`;
 }

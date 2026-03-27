@@ -9,25 +9,33 @@ const tabs = [
 
 export default function NavBar() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 glass border-t border-white/5">
-      <div className="max-w-lg mx-auto flex justify-around items-center h-16 px-2">
-        {tabs.map(({ to, label, icon: Icon }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) =>
-              `flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all duration-300 ${
-                isActive
-                  ? 'text-aura-amber'
-                  : 'text-gray-500 hover:text-gray-300'
-              }`
-            }
-          >
-            <Icon />
-            <span className="text-[10px] font-medium tracking-wide">{label}</span>
-          </NavLink>
-        ))}
-      </div>
+    <nav
+      style={{
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-around',
+        height: '70px',
+        width: '100%',
+      }}
+    >
+      {tabs.map(({ to, label, icon: Icon }) => (
+        <NavLink
+          key={to}
+          to={to}
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '6px 12px', borderRadius: '12px', textDecoration: 'none' }}
+          className={({ isActive }) =>
+            `transition-all duration-300 ${
+              isActive
+                ? 'text-aura-amber'
+                : 'text-gray-500 hover:text-gray-300'
+            }`
+          }
+        >
+          <Icon />
+          <span style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '0.025em', textAlign: 'center' }}>{label}</span>
+        </NavLink>
+      ))}
     </nav>
   );
 }

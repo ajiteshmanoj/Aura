@@ -1,5 +1,6 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
+import PhoneFrame from './components/PhoneFrame';
 import NavBar from './components/NavBar';
 import Landing from './pages/Landing';
 import Express from './pages/Express';
@@ -15,22 +16,18 @@ function SpotifyCallback() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
-    console.log('Spotify callback - code:', code);
     if (code) {
       handleSpotifyCallback(code).then(token => {
-        console.log('Spotify token received:', !!token);
         if (token) setSpotifyToken(token);
         window.location.href = window.location.origin + '/express';
-      }).catch(err => {
-        console.error('Spotify callback error:', err);
+      }).catch(() => {
         window.location.href = window.location.origin + '/express';
       });
     } else {
-      console.log('No code in callback URL, redirecting to express');
       window.location.href = window.location.origin + '/express';
     }
   }, []);
-  return <div className="min-h-dvh flex items-center justify-center text-gray-400">Connecting Spotify...</div>;
+  return <div className="flex items-center justify-center h-full text-gray-400">Connecting Spotify...</div>;
 }
 
 function GoogleCallback() {
@@ -38,41 +35,36 @@ function GoogleCallback() {
     const hash = window.location.hash;
     const params = new URLSearchParams(hash.replace('#', ''));
     const token = params.get('access_token');
-    if (token) {
-      setGoogleToken(token);
-    }
-    window.location.href = '/reflect';
+    if (token) setGoogleToken(token);
+    window.location.href = window.location.origin + '/reflect';
   }, []);
-  return <div className="min-h-dvh flex items-center justify-center text-gray-400">Connecting Calendar...</div>;
+  return <div className="flex items-center justify-center h-full text-gray-400">Connecting Calendar...</div>;
+}
+
+function PageContent() {
+  return (
+    <Routes>
+      <Route path="/" element={<Landing />} />
+      <Route path="/express" element={<Express />} />
+      <Route path="/reflect" element={<Reflect />} />
+      <Route path="/report" element={<Report />} />
+      <Route path="/echoes" element={<Echoes />} />
+      <Route path="/canvas" element={<Canvas />} />
+      <Route path="/playlists" element={<Playlists />} />
+      <Route path="/callback/spotify" element={<SpotifyCallback />} />
+      <Route path="/callback/google" element={<GoogleCallback />} />
+    </Routes>
+  );
 }
 
 export default function App() {
   const location = useLocation();
-  const showNav = location.pathname !== '/';
+  const showNav = location.pathname !== '/' &&
+    !location.pathname.startsWith('/callback');
 
   return (
-    <div className="min-h-dvh">
-      {/* Ambient background */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-0 left-1/3 w-[600px] h-[600px] bg-aura-amber/[0.02] rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-aura-lavender/[0.02] rounded-full blur-3xl" />
-      </div>
-
-      <div className="relative z-10">
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/express" element={<Express />} />
-          <Route path="/reflect" element={<Reflect />} />
-          <Route path="/report" element={<Report />} />
-          <Route path="/echoes" element={<Echoes />} />
-          <Route path="/canvas" element={<Canvas />} />
-          <Route path="/playlists" element={<Playlists />} />
-          <Route path="/callback/spotify" element={<SpotifyCallback />} />
-          <Route path="/callback/google" element={<GoogleCallback />} />
-        </Routes>
-      </div>
-
-      {showNav && <NavBar />}
-    </div>
+    <PhoneFrame bottomNav={showNav ? <NavBar /> : null}>
+      <PageContent />
+    </PhoneFrame>
   );
 }

@@ -18,7 +18,7 @@ async function generateCodeChallenge(verifier) {
 
 export async function initiateSpotifyAuth() {
   const verifier = generateCodeVerifier();
-  sessionStorage.setItem('spotify_verifier', verifier);
+  localStorage.setItem('spotify_verifier', verifier);
   const challenge = await generateCodeChallenge(verifier);
 
   const params = new URLSearchParams({
@@ -34,7 +34,7 @@ export async function initiateSpotifyAuth() {
 }
 
 export async function handleSpotifyCallback(code) {
-  const verifier = sessionStorage.getItem('spotify_verifier');
+  const verifier = localStorage.getItem('spotify_verifier');
   if (!verifier) {
     console.error('Spotify: No code verifier found in sessionStorage');
     return null;
@@ -64,6 +64,11 @@ export async function searchTracks(token, query) {
     `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=5`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
+  if (res.status === 401) {
+    // Token expired — clear it so user can reconnect
+    localStorage.removeItem('aura_spotify_token');
+    return [];
+  }
   const data = await res.json();
   return (data.tracks?.items || []).map(t => ({
     id: t.id,

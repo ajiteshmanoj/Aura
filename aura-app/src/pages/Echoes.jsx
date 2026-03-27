@@ -37,7 +37,7 @@ export default function Echoes() {
   }, [entries]);
 
   return (
-    <div className="min-h-dvh pb-24 px-5 pt-6 max-w-lg mx-auto page-enter">
+    <div className="pb-6 px-5 pt-6 max-w-lg mx-auto page-enter">
       <div className="mb-6">
         <h1 className="font-serif text-3xl text-white mb-1">Echoes</h1>
         <p className="text-sm text-gray-500">You're not alone in this</p>
