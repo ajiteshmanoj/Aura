@@ -50,6 +50,16 @@ export default function Express() {
     reader.readAsDataURL(file);
   };
 
+  const isLowMood = () => {
+    if (song?.features?.valence < 0.35) return true;
+    if (colour) {
+      const h = colour.replace('#', '');
+      const brightness = (parseInt(h.substr(0, 2), 16) + parseInt(h.substr(2, 2), 16) + parseInt(h.substr(4, 2), 16)) / 3;
+      if (brightness < 100) return true;
+    }
+    return false;
+  };
+
   const handleSave = () => {
     saveEntry({
       colour, metaphor: metaphor.trim() || undefined, freeformText: freeform.trim() || undefined,
@@ -57,7 +67,10 @@ export default function Express() {
       songArtist: song?.artist, songAlbumArt: song?.albumArt, songFeatures: song?.features,
     });
     setSaved(true);
-    setTimeout(() => navigate('/reflect'), 1500);
+    if (!isLowMood()) {
+      setTimeout(() => navigate('/reflect'), 1500);
+    }
+    // If low mood, the saved screen will show Atmosphere prompt instead of auto-navigating
   };
 
   if (saved) {
@@ -70,7 +83,32 @@ export default function Express() {
           animation: 'bloom 0.6s ease-out both',
         }} />
         <p style={{ fontFamily: "'Playfair Display', serif", fontSize: '24px', color: '#F0EDE6', marginBottom: '8px' }}>Moment saved</p>
-        <p style={{ fontSize: '13px', color: '#6B6777' }}>Taking you to your reflections...</p>
+
+        {isLowMood() ? (
+          <div style={{ textAlign: 'center', animation: 'fadeInUp 0.8s ease-out 0.5s both' }}>
+            <p style={{ fontSize: '14px', color: '#9B97A0', marginBottom: '20px', lineHeight: 1.6 }}>
+              It sounds heavy today. Want to step into Atmosphere for a few minutes?
+            </p>
+            <button
+              onClick={() => navigate('/atmosphere')}
+              style={{
+                padding: '14px 32px', borderRadius: '20px', border: 'none', cursor: 'pointer',
+                background: `linear-gradient(135deg, ${colour || '#3d5a80'}60, ${colour || '#3d5a80'}30)`,
+                color: '#F0EDE6', fontSize: '14px', fontWeight: 600,
+                boxShadow: `0 0 30px ${colour || '#3d5a80'}30`,
+                animation: 'softPulse 3s ease-in-out infinite',
+                marginBottom: '12px', display: 'block', width: '100%', maxWidth: '260px', margin: '0 auto 12px',
+              }}
+            >
+              Enter Atmosphere
+            </button>
+            <button onClick={() => navigate('/reflect')} style={{ background: 'none', border: 'none', color: '#6B6777', fontSize: '13px', cursor: 'pointer' }}>
+              Maybe later
+            </button>
+          </div>
+        ) : (
+          <p style={{ fontSize: '13px', color: '#6B6777' }}>Taking you to your reflections...</p>
+        )}
       </div>
     );
   }

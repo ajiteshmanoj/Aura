@@ -125,7 +125,8 @@ export default function Report() {
             background: 'linear-gradient(135deg, #B8A9FF, #9B8CE8)', color: '#0a0a1a',
             fontWeight: 700, fontSize: '15px', boxShadow: '0 8px 32px rgba(184,169,255,0.3)',
             opacity: (loading || weekEntries.length === 0) ? 0.4 : 1,
-            transition: 'all 0.3s',
+            transition: 'all 0.3s', textShadow: 'none', WebkitTextStroke: '0',
+            fontFamily: "'DM Sans', sans-serif", letterSpacing: '0.02em',
           }}
         >
           {loading ? 'Generating your report...' : weekEntries.length === 0 ? 'Need at least a week of entries' : 'Generate my Aura Report'}

@@ -56,6 +56,29 @@ export default function Reflect() {
         </Link>
       </div>
 
+      {/* Atmosphere nudge for low mood */}
+      {musicAnalysis && musicAnalysis.moodScore < 0.4 && (
+        <div className="glass" style={{
+          borderRadius: '20px', padding: '18px', marginBottom: '16px',
+          borderLeft: '3px solid #B8A9FF', animation: 'fadeInUp 0.5s ease-out both',
+        }}>
+          <p style={{ fontSize: '14px', color: '#F0EDE6', marginBottom: '4px', lineHeight: 1.6 }}>
+            Sometimes you don't need to think — you just need to feel held.
+          </p>
+          <p style={{ fontSize: '12px', color: '#6B6777', marginBottom: '12px' }}>
+            Atmosphere creates a space that meets you where you are.
+          </p>
+          <Link to="/atmosphere" style={{
+            display: 'inline-block', padding: '10px 24px', borderRadius: '16px',
+            background: 'linear-gradient(135deg, rgba(184,169,255,0.2), rgba(245,166,35,0.1))',
+            color: '#B8A9FF', fontSize: '13px', fontWeight: 600, textDecoration: 'none',
+            boxShadow: '0 0 0 1px rgba(184,169,255,0.15)',
+          }}>
+            Enter Atmosphere
+          </Link>
+        </div>
+      )}
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
         {/* Colour Ribbon — watercolour gradient */}
         <div>

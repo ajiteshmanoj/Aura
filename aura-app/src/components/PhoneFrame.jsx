@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import 'devices.css/dist/devices.min.css';
 
-export default function PhoneFrame({ children, bottomNav }) {
+export default function PhoneFrame({ children, bottomNav, hideChrome }) {
   const [isDesktop, setIsDesktop] = useState(false);
   const [ambientColour, setAmbientColour] = useState('#f0a050');
 
@@ -95,8 +95,8 @@ export default function PhoneFrame({ children, bottomNav }) {
               position: 'relative',
             }}
           >
-            {/* iOS Status Bar */}
-            <div
+            {/* iOS Status Bar — hidden in immersive mode */}
+            {!hideChrome && <div
               style={{
                 flexShrink: 0,
                 height: '54px',
@@ -130,7 +130,7 @@ export default function PhoneFrame({ children, bottomNav }) {
                   <path d="M24 4v4a2 2 0 000-4z" fill="white" fillOpacity="0.4" />
                 </svg>
               </div>
-            </div>
+            </div>}
 
             {/* Scrollable page content */}
             <div

@@ -9,6 +9,7 @@ import Report from './pages/Report';
 import Echoes from './pages/Echoes';
 import Canvas from './pages/Canvas';
 import Playlists from './pages/Playlists';
+import Atmosphere from './pages/Atmosphere';
 import { handleSpotifyCallback } from './utils/spotify';
 import { setSpotifyToken, setGoogleToken } from './data/store';
 
@@ -51,6 +52,7 @@ function PageContent() {
       <Route path="/echoes" element={<Echoes />} />
       <Route path="/canvas" element={<Canvas />} />
       <Route path="/playlists" element={<Playlists />} />
+      <Route path="/atmosphere" element={<Atmosphere />} />
       <Route path="/callback/spotify" element={<SpotifyCallback />} />
       <Route path="/callback/google" element={<GoogleCallback />} />
     </Routes>
@@ -59,11 +61,13 @@ function PageContent() {
 
 export default function App() {
   const location = useLocation();
+  const isImmersive = location.pathname === '/atmosphere';
   const showNav = location.pathname !== '/' &&
-    !location.pathname.startsWith('/callback');
+    !location.pathname.startsWith('/callback') &&
+    !isImmersive;
 
   return (
-    <PhoneFrame bottomNav={showNav ? <NavBar /> : null}>
+    <PhoneFrame bottomNav={showNav ? <NavBar /> : null} hideChrome={isImmersive}>
       <PageContent />
     </PhoneFrame>
   );
