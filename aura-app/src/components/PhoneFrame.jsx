@@ -132,30 +132,36 @@ export default function PhoneFrame({ children, bottomNav, hideChrome }) {
               </div>
             </div>}
 
-            {/* Scrollable page content */}
-            <div
-              id="phone-scroll-area"
-              style={{
-                flex: 1,
-                overflowY: 'auto',
-                overflowX: 'hidden',
-                WebkitOverflowScrolling: 'touch',
-                scrollBehavior: 'smooth',
-                scrollbarWidth: 'none',
-                position: 'relative',
-              }}
-            >
-              {/* Full-screen ambient colour wash */}
-              <div style={{
-                position: 'absolute', inset: 0,
-                background: `linear-gradient(160deg, ${ambientColour}18 0%, ${ambientColour}0a 40%, transparent 80%)`,
-                pointerEvents: 'none', zIndex: 0,
-                transition: 'background 1.5s ease',
-              }} />
-              <div style={{ position: 'relative', zIndex: 1 }}>
+            {/* Content area — immersive mode skips scroll wrapper */}
+            {hideChrome ? (
+              <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
                 {children}
               </div>
-            </div>
+            ) : (
+              <div
+                id="phone-scroll-area"
+                style={{
+                  flex: 1,
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  WebkitOverflowScrolling: 'touch',
+                  scrollBehavior: 'smooth',
+                  scrollbarWidth: 'none',
+                  position: 'relative',
+                }}
+              >
+                {/* Full-screen ambient colour wash */}
+                <div style={{
+                  position: 'absolute', inset: 0,
+                  background: `linear-gradient(160deg, ${ambientColour}18 0%, ${ambientColour}0a 40%, transparent 80%)`,
+                  pointerEvents: 'none', zIndex: 0,
+                  transition: 'background 1.5s ease',
+                }} />
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                  {children}
+                </div>
+              </div>
+            )}
 
             {/* Bottom nav — fixed at bottom of phone, outside scroll */}
             {bottomNav && (
