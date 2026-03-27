@@ -17,7 +17,7 @@ export default function Landing() {
   const hasEntries = getEntries().length > 0;
 
   return (
-    <div className="flex flex-col items-center justify-center px-6 relative overflow-hidden h-full min-h-[600px]">
+    <div className="flex flex-col items-center justify-center px-6 relative overflow-hidden min-h-dvh">
       {/* Drifting ambient orbs */}
       <div style={{ position: 'absolute', top: '-20%', right: '-20%', width: '60%', height: '60%', background: 'radial-gradient(circle, rgba(245,166,35,0.12) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', animation: 'drift 20s ease-in-out infinite alternate' }} />
       <div style={{ position: 'absolute', bottom: '-15%', left: '-15%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(184,169,255,0.08) 0%, transparent 70%)', filter: 'blur(60px)', pointerEvents: 'none', animation: 'driftReverse 25s ease-in-out infinite alternate' }} />

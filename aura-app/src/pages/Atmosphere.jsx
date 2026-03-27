@@ -331,7 +331,7 @@ export default function Atmosphere() {
   if (phase === 'intro') {
     return (
       <div style={{
-        position: 'absolute', inset: 0, background: '#000', zIndex: 9999,
+        position: 'fixed', inset: 0, background: '#000', zIndex: 9999,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         animation: 'fadeIn 1.5s ease-out both',
       }}>
@@ -346,7 +346,7 @@ export default function Atmosphere() {
   if (phase === 'summary' && summaryData) {
     return (
       <div style={{
-        position: 'absolute', inset: 0, background: '#0a0a1a', zIndex: 9999,
+        position: 'fixed', inset: 0, background: '#0a0a1a', zIndex: 9999,
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         padding: '32px', animation: 'fadeIn 1s ease-out both',
       }}>
@@ -392,7 +392,7 @@ export default function Atmosphere() {
   // ACTIVE phase — full-screen immersive
   return (
     <div
-      style={{ position: 'absolute', inset: 0, zIndex: 9999, background: '#000', cursor: 'pointer' }}
+      style={{ position: 'fixed', inset: 0, zIndex: 9999, background: '#000', cursor: 'pointer' }}
       onMouseDown={onHoldStart}
       onMouseUp={onHoldEnd}
       onMouseLeave={onHoldEnd}

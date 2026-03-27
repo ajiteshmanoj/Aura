@@ -82,7 +82,7 @@ export default function Report() {
   ];
 
   return (
-    <div className="pb-6 px-5 pt-6 max-w-lg mx-auto page-enter">
+    <div className="pb-24 px-5 pt-6 min-h-dvh max-w-lg mx-auto page-enter">
       <div style={{ marginBottom: '24px' }}>
         <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '32px', fontWeight: 600, color: '#F0EDE6', letterSpacing: '-0.02em', margin: '0 0 4px' }}>Weekly Report</h1>
         <p style={{ fontSize: '13px', color: '#6B6777', margin: 0 }}>AI-generated insights from your week</p>

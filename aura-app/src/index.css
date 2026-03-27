@@ -123,16 +123,6 @@ body {
   touch-action: none;
 }
 
-/* Override devices.css button styles */
-.device-screen button,
-.device-screen a,
-.device-screen input,
-.device-screen textarea {
-  text-shadow: none !important;
-  -webkit-text-stroke: 0 !important;
-  font-family: 'DM Sans', system-ui, sans-serif;
-}
-
 /* Text styles */
 .text-primary { color: #F0EDE6; }
 .text-secondary { color: #9B97A0; }
